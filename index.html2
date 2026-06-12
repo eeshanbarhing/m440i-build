@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.2, maximum-scale=3.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="M440i Build"/>
+<meta name="theme-color" content="#07070f"/>
+<title>M440i Build Manager</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #07070f;
+    --bg1: #0a0a14;
+    --bg2: #0f0f1e;
+    --bg3: #09090f;
+    --border: #1c1c2e;
+    --border2: #151525;
+    --border3: #111120;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #4b5563;
+    --text4: #374151;
+    --text5: #2d2d4e;
+    --blue: #3b82f6;
+    --purple: #a78bfa;
+    --green: #34d399;
+    --slate: #94a3b8;
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, 'Inter', 'Helvetica Neue', sans-serif; font-size: 16px; }
+  button { font-family: inherit; }
+  input, textarea, select { font-family: inherit; }
+  img { display: block; }
+
+  /* Layout */
+  #app { min-height: 100vh; display: flex; flex-direction: column; }
+  .header { background: var(--bg); padding: 20px 16px 0; position: sticky; top: 0; z-index: 10; }
+  .header-inner { max-width: 660px; margin: 0 auto; }
+  .eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 0.2em; color: var(--text5); text-transform: uppercase; margin-bottom: 6px; }
+  .title-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 14px; }
+  h1 { font-size: 26px; font-weight: 900; letter-spacing: -0.02em; color: #f1f5f9; }
+  .title-stat { text-align: right; }
+  .title-stat .big { font-size: 24px; font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; }
+  .title-stat .small { font-size: 11px; color: var(--text4); }
+  .progress-bar { height: 2px; background: var(--border3); border-radius: 1px; overflow: hidden; margin-bottom: 14px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 1px; transition: width 0.4s; }
+  .tabs { display: flex; gap: 2px; }
+  .tab-btn { background: none; border: 1px solid transparent; border-bottom: 1px solid transparent; color: var(--text4); padding: 11px 20px; font-size: 15px; font-weight: 700; cursor: pointer; border-radius: 6px 6px 0 0; letter-spacing: 0.04em; transition: color 0.15s; }
+  .tab-btn.active { background: var(--bg2); border-color: var(--border); border-bottom-color: var(--bg2); color: var(--text); }
+
+  /* Content area */
+  .content-area { background: var(--bg2); border-top: 1px solid var(--border); flex: 1; }
+  .content-inner { max-width: 660px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  /* Category section */
+  .cat-section { margin-bottom: 20px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; }
+  .cat-header { width: 100%; background: none; border: none; cursor: pointer; padding: 12px 14px; display: flex; align-items: center; gap: 10px; text-align: left; }
+  .cat-icon { font-size: 16px; }
+  .cat-label { color: var(--text); font-weight: 700; font-size: 15px; flex: 1; }
+  .cat-meta { font-size: 12px; color: var(--text4); }
+  .cat-cost { font-size: 12px; color: var(--text3); }
+  .cat-minibar { width: 32px; height: 3px; background: var(--border3); border-radius: 2px; overflow: hidden; margin-left: 4px; }
+  .cat-minibar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+  .cat-chevron { color: var(--text4); font-size: 11px; margin-left: 2px; }
+  .cat-empty { padding: 14px; color: var(--text5); font-size: 12px; font-style: italic; border-top: 1px solid var(--border3); }
+  .add-mod-btn { display: block; width: 100%; background: none; border: 1px dashed var(--border); color: var(--text5); border-radius: 6px; padding: 6px 12px; font-size: 11px; cursor: pointer; text-align: center; margin: 8px 14px; width: calc(100% - 28px); transition: all 0.15s; }
+
+  /* Mod row */
+  .mod-row { display: grid; grid-template-columns: 1fr auto auto; gap: 0 10px; align-items: center; padding: 9px 14px; border-bottom: 1px solid var(--border3); transition: background 0.1s; cursor: default; }
+  .mod-row:hover { background: #0d0d1a; }
+  .mod-name { color: var(--text); font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .mod-phase-tag { margin-left: 6px; font-size: 11px; color: var(--text4); background: var(--border3); border-radius: 3px; padding: 1px 5px; }
+  .mod-sub { color: var(--text4); font-size: 12px; margin-top: 2px; display: flex; gap: 10px; }
+  .mod-price { color: var(--text3); }
+  .mod-actions { display: flex; gap: 4px; }
+  .mod-actions button { background: none; border: none; cursor: pointer; font-size: 13px; padding: 2px 4px; color: var(--text4); }
+  .mod-actions .del-btn { color: #2d1a1a; }
+  .mod-photo-strip { padding: 0 14px 10px; display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid var(--border3); }
+  .mod-photo-thumb { width: 52px; height: 52px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
+  .mod-photo-add { width: 52px; height: 52px; border-radius: 6px; border: 1px dashed var(--border); background: var(--bg1); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text5); font-size: 20px; }
+
+  /* Status pill */
+  .status-pill { border-radius: 20px; padding: 3px 11px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap; border: 1px solid; transition: all 0.15s; }
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+  .status-planned { background: #0d0d1a; border-color: #3b3b5e; color: #94a3b8; }
+  .status-planned .status-dot { background: #4b5563; }
+  .status-ordered { background: #1a110a; border-color: #92400e; color: #fbbf24; }
+  .status-ordered .status-dot { background: #d97706; }
+  .status-installed { background: #0a180f; border-color: #166534; color: #4ade80; }
+  .status-installed .status-dot { background: #16a34a; }
+  .status-queued { background: transparent; border-color: #1c1c2e; color: #2d2d4e; }
+  .status-queued .status-dot { background: #1c1c2e; }
+
+  /* Build log */
+  .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .log-title { color: var(--text); font-weight: 700; font-size: 14px; }
+  .log-sub { color: var(--text4); font-size: 11px; margin-top: 2px; }
+  .log-add-btn { background: var(--green); border: none; color: #0a180f; border-radius: 7px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .log-empty { text-align: center; padding: 40px 0; color: var(--text5); font-size: 13px; }
+  .log-entry { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .log-entry-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .log-entry-name { color: var(--text); font-weight: 600; font-size: 14px; }
+  .log-entry-meta { display: flex; gap: 12px; margin-top: 4px; flex-wrap: wrap; }
+  .log-entry-meta span { color: var(--text4); font-size: 12px; }
+  .log-entry-meta .cost { color: #4ade80; }
+  .log-entry-notes { color: var(--text3); font-size: 12px; margin-top: 5px; line-height: 1.5; }
+  .log-photo-strip { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .log-photo-thumb { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
+
+  /* Summary */
+  .summary-section-label { color: var(--text3); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 12px; text-align: center; }
+  .stat-card .num { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .stat-card .lbl { font-size: 11px; color: var(--text4); margin-top: 2px; }
+  .budget-card { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 14px; margin-bottom: 20px; }
+  .budget-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border3); }
+  .budget-row:last-child { border-bottom: none; }
+  .budget-label { color: var(--text3); font-size: 12px; }
+  .budget-val { font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .cat-summary-card { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+  .cat-summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .cat-summary-name { color: var(--text); font-size: 13px; font-weight: 600; }
+  .cat-summary-meta { color: var(--text3); font-size: 12px; }
+  .cat-summary-bar { height: 3px; background: var(--border3); border-radius: 2px; overflow: hidden; }
+  .cat-summary-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+
+  /* Modal */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .modal { background: var(--bg1); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .modal-title { color: var(--text); font-size: 15px; font-weight: 700; }
+  .modal-close { background: none; border: none; color: var(--text4); cursor: pointer; font-size: 20px; line-height: 1; padding: 2px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; color: var(--text3); font-size: 11px; margin-bottom: 4px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .field input, .field textarea, .field select {
+    background: #0d0d1a; border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); padding: 7px 10px; font-size: 13px; width: 100%; outline: none;
+  }
+  .field textarea { resize: vertical; min-height: 60px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .cat-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cat-pick-btn { border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; border: 1px solid; transition: all 0.15s; background: #0d0d1a; }
+  .status-picker { display: flex; gap: 6px; }
+  .status-pick-btn { border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; border: 1px solid var(--border); color: var(--text4); background: #0d0d1a; font-weight: 600; text-transform: capitalize; transition: all 0.15s; }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .btn-cancel { background: #0d0d1a; border: 1px solid var(--border); color: #6b7280; border-radius: 6px; padding: 7px 16px; font-size: 13px; cursor: pointer; }
+  .btn-save { border: none; color: #fff; border-radius: 6px; padding: 7px 16px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .btn-save:disabled { opacity: 0.4; cursor: default; }
+
+  /* Photo upload area */
+  .photo-upload-area { border: 1px dashed var(--border); border-radius: 8px; padding: 14px; text-align: center; cursor: pointer; color: var(--text5); font-size: 12px; margin-bottom: 12px; transition: all 0.15s; }
+  .photo-upload-area:hover { border-color: var(--blue); color: var(--blue); }
+  .photo-preview-grid { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .photo-preview { position: relative; }
+  .photo-preview img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+  .photo-preview .remove-photo { position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+
+  /* Lightbox */
+  .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 8px; object-fit: contain; }
+  .lightbox-close { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.1); border: none; color: white; font-size: 20px; cursor: pointer; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a2e1a; border: 1px solid #166534; color: #4ade80; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 300; opacity: 0; transition: opacity 0.2s; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+
+  /* Loading */
+  .loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; color: var(--text5); font-size: 13px; }
+  .sync-indicator { font-size: 10px; color: var(--text5); margin-left: 8px; }
+  .sync-indicator.syncing { color: #f59e0b; }
+  .sync-indicator.synced { color: #4ade80; }
+
+  /* Maintenance */
+  .maint-card { background: var(--bg3); border: 1px solid var(--border2); border-radius: 10px; padding: 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .maint-name { color: var(--text); font-size: 14px; font-weight: 600; }
+  .maint-meta { color: var(--text4); font-size: 12px; margin-top: 3px; }
+  .maint-status { text-align: right; flex-shrink: 0; }
+  .maint-due { font-size: 12px; font-weight: 700; }
+  .maint-due.ok { color: #4ade80; }
+  .maint-due.warn { color: #fbbf24; }
+  .maint-due.over { color: #f87171; }
+  .maint-actions { display: flex; gap: 6px; margin-top: 6px; justify-content: flex-end; }
+  .maint-btn { background: none; border: 1px solid var(--border); color: var(--text4); border-radius: 6px; padding: 3px 10px; font-size: 11px; cursor: pointer; }
+
+  /* Mod details drawer */
+  .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; }
+  .drawer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg1); border: 1px solid var(--border); border-radius: 16px 16px 0 0; padding: 20px 20px 40px; z-index: 101; max-height: 85vh; overflow-y: auto; animation: slideUp 0.2s ease; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .drawer-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+  .drawer-title { color: var(--text); font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .drawer-brand { color: var(--text4); font-size: 13px; margin-bottom: 14px; }
+  .drawer-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border3); }
+  .drawer-label { color: var(--text3); font-size: 13px; }
+  .drawer-val { color: var(--text); font-size: 13px; font-weight: 600; }
+  .drawer-notes { color: var(--text3); font-size: 13px; line-height: 1.6; margin: 10px 0; }
+  .drawer-link { display: flex; align-items: center; gap: 6px; color: var(--blue); font-size: 13px; text-decoration: none; margin: 10px 0; }
+  .drawer-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .drawer-edit-btn { flex: 1; background: var(--blue); border: none; color: #fff; border-radius: 8px; padding: 10px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .drawer-del-btn { background: #1a0a0a; border: 1px solid #2d1a1a; color: #f87171; border-radius: 8px; padding: 10px 16px; font-size: 14px; cursor: pointer; }
+
+  /* Three dots button */
+  .mod-dots-btn { background: none; border: none; color: var(--text4); cursor: pointer; font-size: 18px; padding: 2px 6px; letter-spacing: 1px; line-height: 1; }
+  .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .gallery-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; cursor: pointer; background: var(--bg3); border: 1px solid var(--border2); }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s; }
+  .gallery-item:hover img { transform: scale(1.04); }
+  .gallery-item .gallery-label { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 16px 6px 5px; font-size: 10px; color: #94a3b8; font-weight: 600; }
+  .gallery-section-label { color: var(--text3); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin: 16px 0 8px; }
+  .gallery-empty { text-align: center; padding: 60px 0; color: var(--text5); font-size: 13px; }
+
+  /* Drag to reorder */
+  .mod-drag-handle { color: var(--text5); font-size: 14px; padding: 2px 6px 2px 0; cursor: grab; touch-action: none; }
+  .mod-drag-handle:active { cursor: grabbing; }
+  .mod-row.drag-over { border-top: 2px solid var(--blue); }
+  .mod-row.dragging { opacity: 0.4; }
+    .tab-btn { padding: 7px 10px; font-size: 11px; }
+    h1 { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Loading build…</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://mdkrauthbpqtsoscqbie.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ka3JhdXRoYnBxdHNvc2NxYmllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjE4NzAsImV4cCI6MjA5NjY5Nzg3MH0.IbKpIqn9BpUCP9Fa3lg4zT45LwICBAdzxMbHYBEqXwo";
+const BUCKET = "build-photos";
+
+const HEADERS = { "Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` };
+
+// ─── API HELPERS ─────────────────────────────────────────────────────────────
+const api = {
+  async get(table) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?order=created_at.asc`, { headers: HEADERS });
+    return r.json();
+  },
+  async insert(table, row) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: "POST", headers: { ...HEADERS, "Prefer": "return=representation" },
+      body: JSON.stringify(row)
+    });
+    const data = await r.json();
+    return Array.isArray(data) ? data[0] : data;
+  },
+  async update(table, id, row) {
+    await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: "PATCH", headers: { ...HEADERS, "Prefer": "return=minimal" },
+      body: JSON.stringify(row)
+    });
+  },
+  async delete(table, id) {
+    await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: "DELETE", headers: HEADERS
+    });
+  },
+  async uploadPhoto(file, path) {
+    const r = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
+      method: "POST",
+      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": file.type },
+      body: file
+    });
+    if (!r.ok) throw new Error("Upload failed");
+    return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`;
+  },
+  async deletePhoto(path) {
+    await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
+      method: "DELETE", headers: HEADERS
+    });
+  }
+};
+
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  { id:"performance", label:"Performance", icon:"⚡", color:"#3b82f6" },
+  { id:"exterior",    label:"Exterior",    icon:"🌐", color:"#a78bfa" },
+  { id:"interior",    label:"Interior",    icon:"🪑", color:"#34d399" },
+  { id:"misc",        label:"Miscellaneous", icon:"🗂️", color:"#94a3b8" },
+];
+
+const STATUS_CYCLE = ["planned","ordered","installed","queued"];
+
+const SEED_MODS = [
+  { category:"performance", phase:"Phase 1", item:"ECU Unlock (AutoTuner mail-in)", brand:"AutoTuner", price_note:"~$430", price:430, status:"planned" },
+  { category:"performance", phase:"Phase 1", item:"MHD Super Tuning License (B58)", brand:"MHD Tuning", price_note:"$588", price:588, status:"planned" },
+  { category:"performance", phase:"Phase 1", item:"VRSF Catless Downpipe (G22 M440i)", brand:"VRSF", price_note:"$300", price:300, status:"planned" },
+  { category:"performance", phase:"Phase 1", item:"FTP Charge Pipe (Gen 2 B58TU)", brand:"FTP Motorsport", price_note:"~$200", price:200, status:"planned" },
+  { category:"performance", phase:"Phase 1", item:"NGK 96206 Spark Plugs x6", brand:"NGK", price_note:"$126", price:126, status:"planned" },
+  { category:"performance", phase:"Phase 1", item:"Bosch OEM Coil Packs x6", brand:"Bosch", price_note:"~$335", price:335, status:"planned" },
+  { category:"performance", phase:"Phase 1", item:"xHP TCU Flash (8-speed G-Series)", brand:"xAutomotive", price_note:"$525", price:525, status:"planned" },
+  { category:"performance", phase:"Phase 2", item:"DAW 6769 Turbo (Gen 2, 6-Port)", brand:"Dynamic Autowerx", price_note:"$3,450", price:3450, status:"planned" },
+  { category:"performance", phase:"Phase 2", item:"Dorch DS25 HPFP Upgrade (Gen 2 B58)", brand:"Dorch Engineering", price_note:"$1,999", price:1999, status:"planned" },
+  { category:"performance", phase:"Phase 2", item:"S58 OEM Injectors (+30%, pairs w/ DS25)", brand:"Dorch / BMW", price_note:"$699", price:699, status:"planned" },
+  { category:"performance", phase:"Phase 2", item:"Custom MHD Tune (turbo + HPFP + E40/flex)", brand:"Remote tuner", price_note:"~$700–$850", price:775, status:"planned" },
+  { category:"performance", phase:"Phase 2", item:"BMS CAI for Pure900/DAW inlet", brand:"Burger Motorsports", price_note:"$559", price:559, status:"planned" },
+  { category:"performance", phase:"Phase 2", item:"Wagner EVO1 Intake Manifold Intercooler", brand:"Wagner Tuning", price_note:"$2,490", price:2490, status:"planned" },
+  { category:"performance", phase:"Phase 2", item:"Fuel-It! CANflex Flex Fuel Kit (G-Chassis)", brand:"Fuel-It!", price_note:"$480", price:480, status:"planned" },
+  { category:"performance", phase:"Phase 2", item:"BMS Oil Catch Can (required w/ DAW)", brand:"Burger Motorsports", price_note:"$219", price:219, status:"planned" },
+];
+
+const fmt = n => n ? `$${Number(n).toLocaleString()}` : "—";
+const uid = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+const parsePhotos = p => { if (!p) return []; if (Array.isArray(p)) return p; try { return JSON.parse(p); } catch { return []; } };
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let state = { mods: [], log: [], maintenance: [], tab: "Mods", loading: true, syncing: false, lightbox: null };
+let pendingPhotoUploads = [];
+let existingPhotos = [];
+let dragState = { dragging: null, over: null };
+let currentMileage = Number(localStorage.getItem("currentMileage")||0);
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    // Check if tables exist by querying mods
+    let mods = await api.get("mods");
+    // If empty array, seed
+    if (Array.isArray(mods) && mods.length === 0) {
+      for (const m of SEED_MODS) {
+        await api.insert("mods", { ...m, photos: [] });
+      }
+      mods = await api.get("mods");
+    }
+    if (!Array.isArray(mods)) mods = [];
+    // Ensure photos is always a parsed array
+    mods = mods.map(m => ({ ...m, photos: parsePhotos(m.photos) }));
+    let log = await api.get("build_log");
+    if (!Array.isArray(log)) log = [];
+    log = log.map(l => ({ ...l, photos: parsePhotos(l.photos) }));
+    let maintenance = await api.get("maintenance");
+    if (!Array.isArray(maintenance)) maintenance = [];
+    state.mods = mods;
+    state.log = log;
+    state.maintenance = maintenance;
+  } catch(e) {
+    console.error(e);
+    showToast("Could not connect to database");
+  }
+  state.loading = false;
+  render();
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  const app = document.getElementById("app");
+  if (state.loading) { app.innerHTML = '<div class="loading">Syncing build data…</div>'; return; }
+
+  const activeMods = state.mods.filter(m => m.status !== "queued");
+  const totalMods = activeMods.length;
+  const queued = state.mods.filter(m => m.status === "queued").length;
+  const installed = activeMods.filter(m => m.status === "installed").length;
+  const ordered = activeMods.filter(m => m.status === "ordered").length;
+  const pct = totalMods ? Math.round(installed/totalMods*100) : 0;
+  const totalBudget = activeMods.reduce((s,m) => s+(m.price||0), 0);
+  const spent = activeMods.filter(m => m.status==="installed"||m.status==="ordered").reduce((s,m)=>s+(m.price||0),0);
+  const logSpend = state.log.reduce((s,l)=>s+(Number(l.cost)||0),0);
+
+  app.innerHTML = `
+    <div class="header">
+      <div class="header-inner">
+        <div class="eyebrow">G22 · B58TU · M440i xDrive</div>
+        <div class="title-row">
+          <h1>Build Manager</h1>
+          <div class="title-stat">
+            <div class="big">${installed}/${totalMods}</div>
+            <div class="small">installed</div>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <div class="tabs">
+          ${["Mods","Build Log","Gallery","Summary"].map(t => `<button class="tab-btn ${state.tab===t?"active":""}" onclick="setTab('${t}')">${t}</button>`).join("")}
+        </div>
+      </div>
+    </div>
+    <div class="content-area">
+      <div class="content-inner">
+        ${state.tab==="Mods" ? renderMods() : ""}
+        ${state.tab==="Build Log" ? renderLog(logSpend) : ""}
+        ${state.tab==="Summary" ? renderSummary(installed,ordered,totalMods,totalBudget,spent,logSpend) : ""}
+        ${state.tab==="Gallery" ? renderGallery() : ""}
+      </div>
+    </div>
+    ${state.lightbox ? renderLightbox() : ""}
+  `;
+}
+
+function renderMods() {
+  return CATEGORIES.map(cat => {
+    const catMods = state.mods.filter(m => m.category === cat.id);
+    const activeMods = catMods.filter(m => m.status !== "queued");
+    const inst = activeMods.filter(m=>m.status==="installed").length;
+    const total = activeMods.length;
+    const queuedCount = catMods.filter(m=>m.status==="queued").length;
+    const cost = activeMods.reduce((s,m)=>s+(m.price||0),0);
+    const pct = total ? Math.round(inst/total*100) : 0;
+    return `
+      <div class="cat-section" id="cat-${cat.id}">
+        <button class="cat-header" onclick="toggleCat('${cat.id}')">
+          <span class="cat-icon">${cat.icon}</span>
+          <span class="cat-label">${cat.label}</span>
+          <span class="cat-meta">${inst}/${total} done${queuedCount?` · <span style="color:#2d2d4e">${queuedCount} queued</span>`:""}</span>
+          ${total>0?`<span class="cat-cost">${fmt(cost)}</span>`:""}
+          <div class="cat-minibar"><div class="cat-minibar-fill" style="width:${pct}%;background:${cat.color}"></div></div>
+          <span class="cat-chevron" id="chev-${cat.id}">▼</span>
+        </button>
+        <div id="cat-body-${cat.id}">
+          ${catMods.length===0?`<div class="cat-empty">No ${cat.label.toLowerCase()} mods yet — add one below.</div>`:""}
+          ${catMods.map(m => renderModRow(m, cat)).join("")}
+          <button class="add-mod-btn"
+            onmouseenter="this.style.borderColor='${cat.color}';this.style.color='${cat.color}'"
+            onmouseleave="this.style.borderColor='';this.style.color=''"
+            onclick="openModForm(null,'${cat.id}')">+ Add ${cat.label} mod</button>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function renderModRow(m, cat) {
+  const photos = m.photos || [];
+  return `
+    <div class="mod-row" id="modrow-${m.id}"
+      draggable="true"
+      ondragstart="dragStart('${m.id}')"
+      ondragover="dragOver(event,'${m.id}')"
+      ondragleave="dragLeave('${m.id}')"
+      ondrop="dragDrop(event,'${m.id}','${cat.id}')">
+      <div style="display:flex;align-items:center;gap:4px;min-width:0">
+        <span class="mod-drag-handle" title="Drag to reorder">⠿</span>
+        <div style="min-width:0">
+          <div class="mod-name">${esc(m.item)}${m.phase?`<span class="mod-phase-tag">${esc(m.phase)}</span>`:""}</div>
+          <div class="mod-sub">
+            <span>${esc(m.brand||"")}</span>
+            ${m.price?`<span class="mod-price">${esc(m.price_note||fmt(m.price))}</span>`:""}
+          </div>
+        </div>
+      </div>
+      <button class="status-pill status-${m.status}" onclick="cycleStatus('${m.id}')">
+        <span class="status-dot"></span>${m.status}
+      </button>
+      <div class="mod-actions">
+        <button onclick="openModForm('${m.id}')" title="Edit">✎</button>
+        <button class="del-btn" onclick="deleteMod('${m.id}')" title="Delete">✕</button>
+      </div>
+    </div>
+    ${photos.length > 0 ? `
+      <div class="mod-photo-strip">
+        ${photos.map(url=>`<img class="mod-photo-thumb" src="${url}" onclick="openLightbox('${url}')" loading="lazy"/>`).join("")}
+        <div class="mod-photo-add" onclick="openPhotoUploadForMod('${m.id}')">+</div>
+      </div>` : `
+      <div style="padding:0 14px 8px;border-bottom:1px solid var(--border3)">
+        <button style="background:none;border:none;color:var(--text5);font-size:11px;cursor:pointer;padding:0" onclick="openPhotoUploadForMod('${m.id}')">+ Add photo</button>
+      </div>`}
+  `;
+}
+
+function renderLog(logSpend) {
+  const entries = [...state.log].reverse();
+  return `
+    <div class="log-header">
+      <div>
+        <div class="log-title">Build Log</div>
+        <div class="log-sub">${state.log.length} entries · ${fmt(logSpend)} logged spend</div>
+      </div>
+      <button class="log-add-btn" onclick="openLogForm()">+ Log entry</button>
+    </div>
+    ${entries.length===0?`<div class="log-empty">No entries yet. Log your first build action above.</div>`:""}
+    ${entries.map(e => {
+      const photos = e.photos || [];
+      return `
+      <div class="log-entry">
+        <div class="log-entry-top">
+          <div style="flex:1">
+            <div class="log-entry-name">${esc(e.item)}</div>
+            <div class="log-entry-meta">
+              <span>📅 ${e.date}</span>
+              ${e.mileage?`<span>🏁 ${Number(e.mileage).toLocaleString()} mi</span>`:""}
+              ${e.cost?`<span class="cost">💰 ${fmt(e.cost)}</span>`:""}
+            </div>
+            ${e.notes?`<div class="log-entry-notes">${esc(e.notes)}</div>`:""}
+            ${photos.length>0?`<div class="log-photo-strip">${photos.map(url=>`<img class="log-photo-thumb" src="${url}" onclick="openLightbox('${url}')" loading="lazy"/>`).join("")}</div>`:""}
+          </div>
+          <button style="background:none;border:none;color:#2d1a1a;cursor:pointer;font-size:13px;padding:2px 4px;flex-shrink:0" onclick="deleteLogEntry('${e.id}')" title="Delete">✕</button>
+        </div>
+      </div>`;
+    }).join("")}
+  `;
+}
+
+function renderSummary(installed, ordered, totalMods, totalBudget, spent, logSpend) {
+  const queued = state.mods.filter(m=>m.status==="queued").length;
+  return `
+    <div style="margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="summary-section-label" style="margin-bottom:0">Overall progress</div>
+        <button onclick="exportPDF()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">⬇ Export Build Sheet</button>
+      </div>
+      <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="num" style="color:#4ade80">${installed}</div><div class="lbl">Installed</div></div>
+        <div class="stat-card"><div class="num" style="color:#fbbf24">${ordered}</div><div class="lbl">Ordered</div></div>
+        <div class="stat-card"><div class="num" style="color:#6b7280">${totalMods-installed-ordered}</div><div class="lbl">Planned</div></div>
+        <div class="stat-card"><div class="num" style="color:#2d2d4e">${queued}</div><div class="lbl">Queued</div></div>
+      </div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div class="summary-section-label">Budget <span style="color:var(--text5);font-weight:400;text-transform:none;letter-spacing:0">(queued mods excluded)</span></div>
+      <div class="budget-card">
+        <div class="budget-row"><span class="budget-label">Total build budget</span><span class="budget-val" style="color:#94a3b8">${fmt(totalBudget)}</span></div>
+        <div class="budget-row"><span class="budget-label">Committed (ordered + installed)</span><span class="budget-val" style="color:#fbbf24">${fmt(spent)}</span></div>
+        <div class="budget-row"><span class="budget-label">Remaining</span><span class="budget-val" style="color:#4ade80">${fmt(totalBudget-spent)}</span></div>
+        <div class="budget-row"><span class="budget-label">Logged actual spend</span><span class="budget-val" style="color:#a78bfa">${fmt(logSpend)}</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="summary-section-label">By category</div>
+      ${CATEGORIES.map(cat => {
+        const catMods = state.mods.filter(m=>m.category===cat.id&&m.status!=="queued");
+        const catQueued = state.mods.filter(m=>m.category===cat.id&&m.status==="queued").length;
+        if (!catMods.length && !catQueued) return "";
+        const catInst = catMods.filter(m=>m.status==="installed").length;
+        const catCost = catMods.reduce((s,m)=>s+(m.price||0),0);
+        const pct = catMods.length ? Math.round(catInst/catMods.length*100) : 0;
+        return `
+          <div class="cat-summary-card">
+            <div class="cat-summary-row">
+              <span class="cat-summary-name">${cat.icon} ${cat.label}</span>
+              <span class="cat-summary-meta">${catInst}/${catMods.length}${catQueued?` · <span style="color:#2d2d4e">${catQueued} queued</span>`:""} · ${fmt(catCost)}</span>
+            </div>
+            <div class="cat-summary-bar"><div class="cat-summary-fill" style="width:${pct}%;background:${cat.color}"></div></div>
+          </div>`;
+      }).join("")}
+    </div>
+
+    <div style="margin-top:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="summary-section-label" style="margin-bottom:0">🔩 Maintenance Log</div>
+        <button onclick="openMaintForm()" style="background:var(--blue);border:none;color:#fff;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">+ Add</button>
+      </div>
+      ${state.maintenance.length===0?`<div style="text-align:center;padding:24px 0;color:var(--text5);font-size:13px">No services logged yet.</div>`:""}
+      ${[...state.maintenance].reverse().map(item=>`
+        <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1">
+            <div style="color:var(--text);font-weight:600;font-size:14px">${esc(item.name)}</div>
+            <div style="display:flex;gap:12px;margin-top:4px;flex-wrap:wrap">
+              ${item.last_date?`<span style="color:var(--text4);font-size:12px">📅 ${item.last_date}</span>`:""}
+              ${item.last_mileage?`<span style="color:var(--text4);font-size:12px">🏁 ${Number(item.last_mileage).toLocaleString()} mi</span>`:""}
+              ${item.cost?`<span style="color:#4ade80;font-size:12px">💰 ${fmt(item.cost)}</span>`:""}
+            </div>
+            ${item.notes?`<div style="color:var(--text3);font-size:12px;margin-top:4px;line-height:1.5">${esc(item.notes)}</div>`:""}
+          </div>
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            <button onclick="openMaintForm('${item.id}')" style="background:none;border:none;color:var(--text4);cursor:pointer;font-size:13px;padding:2px 4px">✎</button>
+            <button onclick="deleteMaint('${item.id}')" style="background:none;border:none;color:#2d1a1a;cursor:pointer;font-size:13px;padding:2px 4px">✕</button>
+          </div>
+        </div>`).join("")}
+    </div>
+  `;
+}
+
+function renderLightbox() {
+  return `<div class="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <img src="${state.lightbox}" onclick="event.stopPropagation()"/>
+  </div>`;
+}
+
+// ─── INTERACTIONS ─────────────────────────────────────────────────────────────
+window.setTab = t => { state.tab = t; render(); };
+window.openLightbox = url => { state.lightbox = url; render(); };
+window.closeLightbox = () => { state.lightbox = null; render(); };
+
+// ─── DRAG TO REORDER ─────────────────────────────────────────────────────────
+window.dragStart = id => { dragState.dragging = id; };
+window.dragOver = (e, id) => {
+  e.preventDefault();
+  if (dragState.dragging === id) return;
+  dragState.over = id;
+  document.querySelectorAll(".mod-row").forEach(r => r.classList.remove("drag-over"));
+  const el = document.getElementById(`modrow-${id}`);
+  if (el) el.classList.add("drag-over");
+};
+window.dragLeave = id => {
+  const el = document.getElementById(`modrow-${id}`);
+  if (el) el.classList.remove("drag-over");
+};
+window.dragDrop = async (e, targetId, catId) => {
+  e.preventDefault();
+  document.querySelectorAll(".mod-row").forEach(r => r.classList.remove("drag-over"));
+  const fromId = dragState.dragging;
+  dragState.dragging = null; dragState.over = null;
+  if (!fromId || fromId === targetId) return;
+  const catMods = state.mods.filter(m => m.category === catId);
+  const fromIdx = catMods.findIndex(m => m.id === fromId);
+  const toIdx = catMods.findIndex(m => m.id === targetId);
+  if (fromIdx === -1 || toIdx === -1) return;
+  const reordered = [...catMods];
+  const [moved] = reordered.splice(fromIdx, 1);
+  reordered.splice(toIdx, 0, moved);
+  const otherMods = state.mods.filter(m => m.category !== catId);
+  state.mods = [...otherMods, ...reordered];
+  render();
+  showToast("Order saved");
+};
+
+// ─── GALLERY ─────────────────────────────────────────────────────────────────
+function renderGallery() {
+  const modPhotos = state.mods.flatMap(m => (m.photos||[]).map(url => ({ url, label: m.item, type: "mod" })));
+  const logPhotos = state.log.flatMap(l => (l.photos||[]).map(url => ({ url, label: l.item + " · " + l.date, type: "log" })));
+  const allPhotos = [...modPhotos, ...logPhotos];
+  if (allPhotos.length === 0) return `<div class="gallery-empty">No photos yet — add them to mods or log entries.</div>`;
+  return `
+    ${modPhotos.length > 0 ? `
+      <div class="gallery-section-label">Mod Photos</div>
+      <div class="gallery-grid">
+        ${modPhotos.map(p => `
+          <div class="gallery-item" onclick="openLightbox('${p.url}')">
+            <img src="${p.url}" loading="lazy"/>
+            <div class="gallery-label">${esc(p.label)}</div>
+          </div>`).join("")}
+      </div>` : ""}
+    ${logPhotos.length > 0 ? `
+      <div class="gallery-section-label">Build Log Photos</div>
+      <div class="gallery-grid">
+        ${logPhotos.map(p => `
+          <div class="gallery-item" onclick="openLightbox('${p.url}')">
+            <img src="${p.url}" loading="lazy"/>
+            <div class="gallery-label">${esc(p.label)}</div>
+          </div>`).join("")}
+      </div>` : ""}
+  `;
+}
+
+window.toggleCat = id => {
+  const body = document.getElementById(`cat-body-${id}`);
+  const chev = document.getElementById(`chev-${id}`);
+  if (!body) return;
+  const hidden = body.style.display === "none";
+  body.style.display = hidden ? "" : "none";
+  chev.textContent = hidden ? "▼" : "▲";
+};
+
+window.cycleStatus = async id => {
+  const mod = state.mods.find(m=>m.id===id);
+  if (!mod) return;
+  const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(mod.status)+1)%4];
+  state.mods = state.mods.map(m=>m.id===id?{...m,status:next}:m);
+  render();
+  await api.update("mods", id, { status: next });
+  showToast(`Marked as ${next}`);
+};
+
+window.deleteMod = async id => {
+  if (!confirm("Delete this mod?")) return;
+  state.mods = state.mods.filter(m=>m.id!==id);
+  render();
+  await api.delete("mods", id);
+  showToast("Mod removed");
+};
+
+window.deleteLogEntry = async id => {
+  if (!confirm("Delete this log entry?")) return;
+  state.log = state.log.filter(l=>l.id!==id);
+  render();
+  await api.delete("build_log", id);
+  showToast("Entry removed");
+};
+
+// Quick photo upload for existing mod
+window.openPhotoUploadForMod = id => {
+  const input = document.createElement("input");
+  input.type = "file"; input.accept = "image/*"; input.multiple = true;
+  input.onchange = async () => {
+    const files = Array.from(input.files);
+    if (!files.length) return;
+    showToast("Uploading…");
+    const mod = state.mods.find(m=>m.id===id);
+    const existing = mod.photos || [];
+    const urls = [];
+    for (const f of files) {
+      const path = `mods/${id}/${uid()}-${f.name}`;
+      try { urls.push(await api.uploadPhoto(f, path)); } catch(e) { console.error(e); }
+    }
+    const updated = [...existing, ...urls];
+    state.mods = state.mods.map(m=>m.id===id?{...m,photos:updated}:m);
+    render();
+    await api.update("mods", id, { photos: updated });
+    showToast("Photos saved");
+  };
+  input.click();
+};
+
+// ─── MOD FORM ────────────────────────────────────────────────────────────────
+let modFormState = {};
+
+window.openModForm = (id, prefillCat) => {
+  const mod = id ? state.mods.find(m=>m.id===id) : null;
+  modFormState = mod ? {...mod} : { category: prefillCat||"performance", item:"", brand:"", price:"", price_note:"", phase:"", status:"planned", photos:[], notes:"", link:"" };
+  pendingPhotoUploads = [];
+  existingPhotos = mod ? (mod.photos||[]) : [];
+  renderModFormModal();
+};
+
+function renderModFormModal() {
+  const mod = modFormState;
+  const isEdit = !!mod.id;
+  const cat = CATEGORIES.find(c=>c.id===mod.category)||CATEGORIES[0];
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  backdrop.id = "mod-form-modal";
+  backdrop.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">${isEdit?"Edit Mod":"Add Mod"}</div>
+        <button class="modal-close" onclick="closeModForm()">✕</button>
+      </div>
+
+      <div class="field">
+        <label>Category</label>
+        <div class="cat-picker">
+          ${CATEGORIES.map(c=>`
+            <button class="cat-pick-btn" id="cat-pick-${c.id}"
+              style="border-color:${mod.category===c.id?c.color:"var(--border)"};color:${mod.category===c.id?c.color:"var(--text3)"};background:${mod.category===c.id?c.color+"22":"#0d0d1a"}"
+              onclick="pickCat('${c.id}')">${c.icon} ${c.label}</button>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Mod name *</label>
+        <input id="mf-item" value="${esc(mod.item||"")}" placeholder="e.g. BC Racing BR Coilovers" oninput="modFormState.item=this.value"/>
+      </div>
+      <div class="field">
+        <label>Brand</label>
+        <input id="mf-brand" value="${esc(mod.brand||"")}" placeholder="e.g. BC Racing" oninput="modFormState.brand=this.value"/>
+      </div>
+      <div class="field-row">
+        <div class="field" style="margin-bottom:0">
+          <label>Price ($)</label>
+          <input id="mf-price" type="number" value="${mod.price||""}" placeholder="0" oninput="modFormState.price=this.value"/>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Display price</label>
+          <input id="mf-pnote" value="${esc(mod.price_note||"")}" placeholder="~$1,200" oninput="modFormState.price_note=this.value"/>
+        </div>
+      </div>
+      ${mod.category==="performance"?`
+      <div class="field" style="margin-top:12px">
+        <label>Phase / group</label>
+        <input id="mf-phase" value="${esc(mod.phase||"")}" placeholder="Phase 1, Phase 2…" oninput="modFormState.phase=this.value"/>
+      </div>`:"<div style='margin-top:12px'></div>"}
+
+      <div class="field">
+        <label>Status</label>
+        <div class="status-picker">
+          ${["planned","ordered","installed","queued"].map(s=>`
+            <button class="status-pick-btn" id="sp-${s}"
+              style="${mod.status===s?`background:var(--bg3);border-color:${s==="planned"?"#2d2d4e":s==="ordered"?"#92400e":"#166534"};color:${s==="planned"?"#6b7280":s==="ordered"?"#fbbf24":"#4ade80"}`:""};"
+              onclick="pickStatus('${s}')">${s}</button>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Link (eBay, Alibaba, etc.)</label>
+        <input id="mf-link" value="${esc(mod.link||"")}" placeholder="https://…" oninput="modFormState.link=this.value"/>
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <textarea id="mf-notes" placeholder="Install tips, part numbers, fitment notes…" oninput="modFormState.notes=this.value">${esc(mod.notes||"")}</textarea>
+      </div>
+
+      <div class="field">
+        <label>Photos</label>
+        ${existingPhotos.length>0||pendingPhotoUploads.length>0?`
+          <div class="photo-preview-grid" id="photo-preview-grid">
+            ${existingPhotos.map((url,i)=>`
+              <div class="photo-preview">
+                <img src="${url}"/>
+                <button class="remove-photo" onclick="removeExistingPhoto(${i})">✕</button>
+              </div>`).join("")}
+            ${pendingPhotoUploads.map((p,i)=>`
+              <div class="photo-preview">
+                <img src="${p.previewUrl}"/>
+                <button class="remove-photo" onclick="removePendingPhoto(${i})">✕</button>
+              </div>`).join("")}
+          </div>`:""}
+        <div class="photo-upload-area" onclick="triggerPhotoInput()">📷 Tap to add photos from camera or library</div>
+        <input type="file" id="photo-file-input" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(this)"/>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModForm()">Cancel</button>
+        <button class="btn-save" id="mod-save-btn" style="background:${cat.color}" onclick="saveModForm()">${isEdit?"Save changes":"Add mod"}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+};
+
+window.closeModForm = () => {
+  const el = document.getElementById("mod-form-modal");
+  if (el) el.remove();
+  pendingPhotoUploads = [];
+};
+
+window.pickCat = id => {
+  modFormState.category = id;
+  // Re-render modal
+  const el = document.getElementById("mod-form-modal");
+  if (el) el.remove();
+  renderModFormModal();
+};
+
+window.pickStatus = s => {
+  modFormState.status = s;
+  ["planned","ordered","installed","queued"].forEach(x => {
+    const btn = document.getElementById(`sp-${x}`);
+    if (!btn) return;
+    if (x===s) {
+      btn.style.background = "var(--bg3)";
+      btn.style.borderColor = x==="planned"?"#3b3b5e":x==="ordered"?"#92400e":x==="installed"?"#166534":"#1c1c2e";
+      btn.style.color = x==="planned"?"#94a3b8":x==="ordered"?"#fbbf24":x==="installed"?"#4ade80":"#2d2d4e";
+    } else {
+      btn.style.background = ""; btn.style.borderColor = ""; btn.style.color = "";
+    }
+  });
+};
+
+window.triggerPhotoInput = () => document.getElementById("photo-file-input").click();
+
+window.handlePhotoSelect = input => {
+  const files = Array.from(input.files);
+  files.forEach(f => {
+    const url = URL.createObjectURL(f);
+    pendingPhotoUploads.push({ file: f, previewUrl: url });
+  });
+  // refresh previews
+  const el = document.getElementById("mod-form-modal");
+  if (el) el.remove();
+  renderModFormModal();
+};
+
+window.removeExistingPhoto = i => {
+  existingPhotos.splice(i,1);
+  const el = document.getElementById("mod-form-modal");
+  if (el) el.remove();
+  renderModFormModal();
+};
+
+window.removePendingPhoto = i => {
+  pendingPhotoUploads.splice(i,1);
+  const el = document.getElementById("mod-form-modal");
+  if (el) el.remove();
+  renderModFormModal();
+};
+
+window.saveModForm = async () => {
+  const f = modFormState;
+  if (!f.item || !f.item.trim()) return;
+  const btn = document.getElementById("mod-save-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
+
+  // Upload pending photos
+  const uploadedUrls = [];
+  for (const p of pendingPhotoUploads) {
+    const path = `mods/${f.id||uid()}/${uid()}-${p.file.name}`;
+    try { uploadedUrls.push(await api.uploadPhoto(p.file, path)); } catch(e) { console.error(e); }
+  }
+  const allPhotos = [...existingPhotos, ...uploadedUrls];
+
+  const row = {
+    category: f.category, item: f.item.trim(), brand: f.brand||"",
+    price: Number(f.price)||0, price_note: f.price_note||"",
+    phase: f.phase||"", status: f.status||"planned", photos: allPhotos,
+    notes: f.notes||"", link: f.link||""
+  };
+
+  if (f.id) {
+    state.mods = state.mods.map(m=>m.id===f.id?{...m,...row}:m);
+    closeModForm(); render();
+    await api.update("mods", f.id, row);
+    showToast("Mod updated");
+  } else {
+    const saved = await api.insert("mods", row);
+    state.mods.push(saved||{...row,id:uid()});
+    closeModForm(); render();
+    showToast("Mod added");
+  }
+};
+
+// ─── LOG FORM ────────────────────────────────────────────────────────────────
+let logFormState = {};
+
+window.openLogForm = () => {
+  const today = new Date().toISOString().slice(0,10);
+  logFormState = { date: today, mileage:"", item:"", cost:"", notes:"", photos:[] };
+  pendingPhotoUploads = [];
+  renderLogFormModal();
+};
+
+function renderLogFormModal() {
+  const f = logFormState;
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  backdrop.id = "log-form-modal";
+  backdrop.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Log build entry</div>
+        <button class="modal-close" onclick="closeLogForm()">✕</button>
+      </div>
+      <div class="field-row">
+        <div class="field" style="margin-bottom:0">
+          <label>Date *</label>
+          <input type="date" value="${f.date}" oninput="logFormState.date=this.value"/>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Mileage</label>
+          <input type="number" value="${f.mileage}" placeholder="e.g. 24500" oninput="logFormState.mileage=this.value"/>
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label>What was done *</label>
+        <input value="${esc(f.item)}" placeholder="e.g. Installed downpipe + tune flash" oninput="logFormState.item=this.value"/>
+      </div>
+      <div class="field">
+        <label>Cost paid ($)</label>
+        <input type="number" value="${f.cost}" placeholder="0" oninput="logFormState.cost=this.value"/>
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <textarea placeholder="Shop, tuner, observations…" oninput="logFormState.notes=this.value">${esc(f.notes)}</textarea>
+      </div>
+      <div class="field">
+        <label>Photos</label>
+        ${pendingPhotoUploads.length>0?`
+          <div class="photo-preview-grid">
+            ${pendingPhotoUploads.map((p,i)=>`
+              <div class="photo-preview">
+                <img src="${p.previewUrl}"/>
+                <button class="remove-photo" onclick="removeLogPendingPhoto(${i})">✕</button>
+              </div>`).join("")}
+          </div>`:""}
+        <div class="photo-upload-area" onclick="triggerLogPhotoInput()">📷 Tap to add photos</div>
+        <input type="file" id="log-photo-input" accept="image/*" multiple style="display:none" onchange="handleLogPhotoSelect(this)"/>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeLogForm()">Cancel</button>
+        <button class="btn-save" id="log-save-btn" style="background:#34d399;color:#0a180f" onclick="saveLogForm()">Save entry</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+}
+
+window.closeLogForm = () => {
+  const el = document.getElementById("log-form-modal");
+  if (el) el.remove();
+  pendingPhotoUploads = [];
+};
+
+window.triggerLogPhotoInput = () => document.getElementById("log-photo-input").click();
+
+window.handleLogPhotoSelect = input => {
+  Array.from(input.files).forEach(f => {
+    pendingPhotoUploads.push({ file: f, previewUrl: URL.createObjectURL(f) });
+  });
+  const el = document.getElementById("log-form-modal");
+  if (el) el.remove();
+  renderLogFormModal();
+};
+
+window.removeLogPendingPhoto = i => {
+  pendingPhotoUploads.splice(i,1);
+  const el = document.getElementById("log-form-modal");
+  if (el) el.remove();
+  renderLogFormModal();
+};
+
+window.saveLogForm = async () => {
+  const f = logFormState;
+  if (!f.date || !f.item || !f.item.trim()) return;
+  const btn = document.getElementById("log-save-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
+
+  const uploadedUrls = [];
+  for (const p of pendingPhotoUploads) {
+    const path = `log/${uid()}-${p.file.name}`;
+    try { uploadedUrls.push(await api.uploadPhoto(p.file, path)); } catch(e) { console.error(e); }
+  }
+
+  const row = {
+    date: f.date, mileage: f.mileage||null, item: f.item.trim(),
+    cost: Number(f.cost)||null, notes: f.notes||"", photos: uploadedUrls
+  };
+
+  const saved = await api.insert("build_log", row);
+  state.log.push(saved||{...row,id:uid()});
+  closeLogForm(); render();
+  showToast("Entry logged");
+};
+
+// ─── MOD DRAWER ──────────────────────────────────────────────────────────────
+window.openModDrawer = id => {
+  const mod = state.mods.find(m=>m.id===id);
+  if (!mod) return;
+  const cat = CATEGORIES.find(c=>c.id===mod.category)||CATEGORIES[0];
+  const existing = document.getElementById("mod-drawer");
+  if (existing) existing.remove();
+
+  const wrap = document.createElement("div");
+  wrap.id = "mod-drawer-wrap";
+  wrap.innerHTML = `
+    <div class="drawer-backdrop" onclick="closeModDrawer()"></div>
+    <div class="drawer" id="mod-drawer">
+      <div class="drawer-handle"></div>
+      <div class="drawer-title">${esc(mod.item)}</div>
+      <div class="drawer-brand">${esc(mod.brand||"")}${mod.phase?` · ${esc(mod.phase)}`:""}</div>
+      <div class="drawer-row"><span class="drawer-label">Status</span><span class="drawer-val"><span class="status-pill status-${mod.status}" style="display:inline-flex"><span class="status-dot"></span>${mod.status}</span></span></div>
+      <div class="drawer-row"><span class="drawer-label">Price</span><span class="drawer-val">${esc(mod.price_note||fmt(mod.price))}</span></div>
+      <div class="drawer-row"><span class="drawer-label">Category</span><span class="drawer-val">${cat.icon} ${cat.label}</span></div>
+      ${mod.notes?`<div class="drawer-notes">${esc(mod.notes)}</div>`:""}
+      ${mod.link?`<a class="drawer-link" href="${esc(mod.link)}" target="_blank">🔗 Open listing</a>`:""}
+      ${(mod.photos||[]).length>0?`
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0">
+          ${(mod.photos||[]).map(url=>`<img src="${url}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer" onclick="openLightbox('${url}')"/>`).join("")}
+        </div>`:""}
+      <div class="drawer-actions">
+        <button class="drawer-edit-btn" onclick="closeModDrawer();openModForm('${mod.id}')">✎ Edit</button>
+        <button class="drawer-del-btn" onclick="closeModDrawer();deleteMod('${mod.id}')">Delete</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(wrap);
+};
+
+window.closeModDrawer = () => {
+  const el = document.getElementById("mod-drawer-wrap");
+  if (el) el.remove();
+};
+
+// ─── MAINTENANCE ──────────────────────────────────────────────────────────────
+function renderMaintenance() {
+  const items = state.maintenance;
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <div style="color:var(--text);font-weight:700;font-size:15px">Maintenance</div>
+        <div style="color:var(--text4);font-size:12px;margin-top:3px">${items.length} services tracked</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;align-items:center;gap:6px">
+          <input id="cur-mileage" type="number" value="${currentMileage||""}" placeholder="Current mi"
+            style="background:#0d0d1a;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 10px;font-size:12px;width:110px;outline:none"
+            oninput="updateMileage(this.value)"/>
+        </div>
+        <button onclick="openMaintForm()" style="background:var(--blue);border:none;color:#fff;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ Add</button>
+      </div>
+    </div>
+    ${items.length===0?`<div style="text-align:center;padding:40px 0;color:var(--text5);font-size:13px">No services yet — add your first one above.</div>`:""}
+    ${items.map(item => {
+      const miSince = currentMileage && item.last_mileage ? currentMileage - item.last_mileage : null;
+      const miUntil = item.interval_miles && miSince !== null ? item.interval_miles - miSince : null;
+      let dueClass = "ok", dueText = "Up to date";
+      if (miUntil !== null) {
+        if (miUntil <= 0) { dueClass = "over"; dueText = `${Math.abs(Math.round(miUntil)).toLocaleString()} mi overdue`; }
+        else if (miUntil < item.interval_miles * 0.15) { dueClass = "warn"; dueText = `Due in ${Math.round(miUntil).toLocaleString()} mi`; }
+        else { dueClass = "ok"; dueText = `${Math.round(miUntil).toLocaleString()} mi remaining`; }
+      } else if (!item.last_mileage && !item.last_date) {
+        dueClass = "warn"; dueText = "Never logged";
+      }
+      return `
+        <div class="maint-card">
+          <div style="flex:1">
+            <div class="maint-name">${esc(item.name)}</div>
+            <div class="maint-meta">
+              ${item.last_date?`Last: ${item.last_date}`:"Not yet done"}
+              ${item.last_mileage?` · ${Number(item.last_mileage).toLocaleString()} mi`:""}
+              ${item.interval_miles?` · Every ${Number(item.interval_miles).toLocaleString()} mi`:""}
+            </div>
+            ${item.notes?`<div style="color:var(--text3);font-size:11px;margin-top:3px">${esc(item.notes)}</div>`:""}
+          </div>
+          <div class="maint-status">
+            <div class="maint-due ${dueClass}">${dueText}</div>
+            <div class="maint-actions">
+              <button class="maint-btn" onclick="openMaintForm('${item.id}')">Edit</button>
+              <button class="maint-btn" onclick="deleteMaint('${item.id}')" style="color:#f87171;border-color:#2d1a1a">✕</button>
+            </div>
+          </div>
+        </div>`;
+    }).join("")}
+  `;
+}
+
+window.updateMileage = val => {
+  currentMileage = Number(val)||0;
+  localStorage.setItem("currentMileage", currentMileage);
+  render();
+};
+
+window.deleteMaint = async id => {
+  if (!confirm("Delete this service?")) return;
+  state.maintenance = state.maintenance.filter(m=>m.id!==id);
+  render();
+  await api.delete("maintenance", id);
+  showToast("Service removed");
+};
+
+let maintFormState = {};
+window.openMaintForm = id => {
+  const item = id ? state.maintenance.find(m=>m.id===id) : null;
+  maintFormState = item ? {...item} : { name:"", last_date:"", last_mileage:"", cost:"", notes:"" };
+  renderMaintFormModal();
+};
+
+function renderMaintFormModal() {
+  const f = maintFormState;
+  const isEdit = !!f.id;
+  const today = new Date().toISOString().slice(0,10);
+  const backdrop = document.createElement("div");
+  backdrop.className = "modal-backdrop";
+  backdrop.id = "maint-form-modal";
+  const inputStyle = `style="background:#0d0d1a;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-size:13px;width:100%;outline:none;box-sizing:border-box"`;
+  const labelStyle = `style="display:block;color:var(--text3);font-size:11px;margin-bottom:4px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase"`;
+  backdrop.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">${isEdit?"Edit Service":"Log Service"}</div>
+        <button class="modal-close" onclick="closeMaintForm()">✕</button>
+      </div>
+      <div class="field">
+        <label ${labelStyle}>What was done *</label>
+        <input ${inputStyle} value="${esc(f.name)}" placeholder="e.g. Oil Change, Trans Service" oninput="maintFormState.name=this.value"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div class="field" style="margin-bottom:0">
+          <label ${labelStyle}>Date</label>
+          <input ${inputStyle} type="date" value="${f.last_date||today}" oninput="maintFormState.last_date=this.value"/>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label ${labelStyle}>Mileage</label>
+          <input ${inputStyle} type="number" value="${f.last_mileage||""}" placeholder="e.g. 24000" oninput="maintFormState.last_mileage=this.value"/>
+        </div>
+      </div>
+      <div class="field">
+        <label ${labelStyle}>Cost ($)</label>
+        <input ${inputStyle} type="number" value="${f.cost||""}" placeholder="0" oninput="maintFormState.cost=this.value"/>
+      </div>
+      <div class="field">
+        <label ${labelStyle}>Notes</label>
+        <textarea ${inputStyle} style="resize:vertical;min-height:50px" oninput="maintFormState.notes=this.value">${esc(f.notes||"")}</textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeMaintForm()">Cancel</button>
+        <button class="btn-save" style="background:var(--blue)" onclick="saveMaintForm()">Save</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+}
+
+window.closeMaintForm = () => { const el = document.getElementById("maint-form-modal"); if (el) el.remove(); };
+
+window.saveMaintForm = async () => {
+  const f = maintFormState;
+  if (!f.name||!f.name.trim()) return;
+  const row = { name: f.name.trim(), last_date: f.last_date||null, last_mileage: Number(f.last_mileage)||null, cost: Number(f.cost)||null, notes: f.notes||"" };
+  if (f.id) {
+    state.maintenance = state.maintenance.map(m=>m.id===f.id?{...m,...row}:m);
+    closeMaintForm(); render();
+    await api.update("maintenance", f.id, row);
+    showToast("Service updated");
+  } else {
+    const saved = await api.insert("maintenance", row);
+    state.maintenance.push(saved||{...row,id:uid()});
+    closeMaintForm(); render();
+    showToast("Service added");
+  }
+};
+
+// ─── PDF EXPORT ───────────────────────────────────────────────────────────────
+window.exportPDF = () => {
+  const activeMods = state.mods.filter(m=>m.status!=="queued");
+  const installed = activeMods.filter(m=>m.status==="installed").length;
+  const totalBudget = activeMods.reduce((s,m)=>s+(m.price||0),0);
+  const spent = activeMods.filter(m=>m.status==="installed"||m.status==="ordered").reduce((s,m)=>s+(m.price||0),0);
+  const byCategory = CATEGORIES.map(cat => {
+    const mods = state.mods.filter(m=>m.category===cat.id);
+    return mods.length ? `<h3 style="margin:16px 0 8px;color:#1e293b;font-size:14px">${cat.icon} ${cat.label}</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:#f1f5f9"><th style="text-align:left;padding:6px 8px;border:1px solid #e2e8f0">Mod</th><th style="padding:6px 8px;border:1px solid #e2e8f0">Brand</th><th style="padding:6px 8px;border:1px solid #e2e8f0">Price</th><th style="padding:6px 8px;border:1px solid #e2e8f0">Status</th></tr></thead>
+        <tbody>${mods.map(m=>`<tr><td style="padding:6px 8px;border:1px solid #e2e8f0">${m.item}${m.phase?` (${m.phase})`:""}</td><td style="padding:6px 8px;border:1px solid #e2e8f0;color:#64748b">${m.brand||""}</td><td style="padding:6px 8px;border:1px solid #e2e8f0">${m.price_note||fmt(m.price)}</td><td style="padding:6px 8px;border:1px solid #e2e8f0;text-transform:capitalize">${m.status}</td></tr>`).join("")}</tbody>
+      </table>` : "";
+  }).join("");
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>M440i Build Sheet</title></head><body style="font-family:-apple-system,sans-serif;max-width:800px;margin:0 auto;padding:32px;color:#0f172a">
+    <h1 style="font-size:24px;font-weight:900;margin-bottom:4px">M440i Build Sheet</h1>
+    <div style="color:#64748b;font-size:13px;margin-bottom:24px">G22 · B58TU · M440i xDrive · Generated ${new Date().toLocaleDateString()}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+      <div style="background:#f8fafc;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:800;color:#3b82f6">${installed}/${activeMods.length}</div><div style="font-size:11px;color:#64748b">Installed</div></div>
+      <div style="background:#f8fafc;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:800;color:#0f172a">${fmt(totalBudget)}</div><div style="font-size:11px;color:#64748b">Total Budget</div></div>
+      <div style="background:#f8fafc;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:800;color:#16a34a">${fmt(spent)}</div><div style="font-size:11px;color:#64748b">Committed</div></div>
+    </div>
+    ${byCategory}
+  </body></html>`;
+
+  const blob = new Blob([html], {type:"text/html"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "m440i-build-sheet.html";
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("Build sheet downloaded");
+};
+function esc(s) {
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ─── BOOT ────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
